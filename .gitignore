@@ -1,6 +1,7 @@
 .vscode/
 secrets.py
 *.sqlite
+keys
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

@@ -1,78 +1,37 @@
-from secrets import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET
-import tweepy
+from secrets import CONSUMER_KEY, CONSUMER_SECRET
+import tweepy, time, argparse, os, pickle
 from models import User, db
+from helpers import bye, print_progress_bar, divide_into_chunks
 from app import app
-import time
-import argparse
-import os
-
 
 db.app = app
 db.init_app(app)
 
 
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
-# TODO: implement auth into app
-# try:
-#     redirect_url = auth.get_authorization_url()
-# except tweepy.TweepError:
-#     print("Error! Failed to get request token.")
+def auth():
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    if os.path.isfile("keys"):
+        token = pickle.load(open("keys", "rb"))
+        auth.set_access_token(token[0], token[1])
+    else:
+        try:
+            redirect_url = auth.get_authorization_url()
+        except tweepy.TweepError:
+            print("Error! Failed to get request token.")
 
-# print("go to ", redirect_url)
-# verifier = input("Verifier:")
-# try:
-#     token = auth.get_access_token(verifier)
-#     print(token)
-# except tweepy.TweepError:
-#     print("Error! Failed to get access token.")
-api = tweepy.API(auth)
-
-user_keys = [
-    "id_str",
-    "name",
-    "screen_name",
-    "location",
-    "description",
-    "followers_count",
-    "friends_count",
-    "listed_count",
-    "created_at",
-    "favourites_count",
-    "verified",
-    "statuses_count",
-]
+        print("visit to authorize with twitter: ", redirect_url)
+        verifier = input("paste the verification code here: ")
+        try:
+            token = auth.get_access_token(verifier)
+        except tweepy.TweepError:
+            print("Error! Failed to get access token.")
+        # save token in keys file
+        pickle.dump(token, open("keys", "wb"))
+    return auth
 
 
-def print_progress_bar(
-    iteration,
-    total,
-    prefix="",
-    suffix="",
-    decimals=1,
-    length=50,
-    fill="█",
-    print_end="\r",
-):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filled_length = int(length * iteration // total)
-    bar = fill * filled_length + "-" * (length - filled_length)
-    print("\r%s |%s| %s%% %s" % (prefix, bar, percent, suffix), end=print_end)
-    # Print New Line on Complete
-    if iteration == total:
-        print()
+api = tweepy.API(auth())
+print("Logged in as: " + api.me().screen_name)
 
 
 def rate_limit_handler(cursor):
@@ -85,21 +44,41 @@ def rate_limit_handler(cursor):
 
 
 def fetch_followers():
+    user_keys = [
+        "id_str",
+        "name",
+        "screen_name",
+        "location",
+        "description",
+        "followers_count",
+        "friends_count",
+        "listed_count",
+        "created_at",
+        "favourites_count",
+        "verified",
+        "statuses_count",
+    ]
     total_followers = api.me().followers_count
     print("Fetching {} followers".format(total_followers))
     db.drop_all()
     db.create_all()
-    for i, user in enumerate(rate_limit_handler(tweepy.Cursor(api.followers).items())):
-        user_dict = dict((k, user.__dict__[k]) for k in user_keys)
-        db.session.add(User(**user_dict))
-        db.session.commit()
-        print_progress_bar(
-            i + 1,
-            total_followers,
-            prefix="Fetching {}/{} Followers".format(i + 1, total_followers),
-            suffix="Fetched",
-        )
-    print("\nDone!")
+    follower_ids = []
+    print("Fetching follower ids!")
+    for id in rate_limit_handler(tweepy.Cursor(api.followers_ids, count=5000).items()):
+        follower_ids.append(id)
+    print("Fetching user objects from ids!")
+    for list_of_100 in list(divide_into_chunks(follower_ids, 100)):
+        for i, user in enumerate(api.lookup_users(user_ids=list_of_100)):
+            user_dict = dict((k, user.__dict__[k]) for k in user_keys)
+            db.session.add(User(**user_dict))
+            db.session.commit()
+            print_progress_bar(
+                i + 1,
+                total_followers,
+                prefix="Fetching {}/{} Followers".format(i + 1, total_followers),
+                suffix="Fetched",
+            )
+    print("Done!")
 
 
 def send_message(user_id, message):
@@ -122,24 +101,23 @@ def mass_dm_followers(message, dry_run=True):
         #     send_message(id, message) # DONT UNCOMMENT UNLESS U REALLY KNOW WHAT UR DOIN
 
 
-def bye():
-    print("Ok bye.")
-    exit()
+def logout():
+    if os.path.isfile("keys"):
+        os.remove("keys")
+        print("Logged out!")
+    else:
+        print("You aren't logged in.")
 
-
-# send_message("1515209660", "test")
 
 if __name__ == "__main__":
-    # # get_followers()
-    # mass_dm_followers("asdf")
     parser = argparse.ArgumentParser(
         description="Mass DM tool for Twitter to convert followers to another platform",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "action",
-        choices=["send", "fetch"],
-        help="What do you wanna do?\n  -'fetch' - fetch followers\n  -'send' - send mass DM to followers",
+        choices=["send", "fetch", "logout"],
+        help="What do you wanna do?\n  - fetch - fetch followers\n  - send - send mass DM to followers\n  - logout - delete stored keys",
     )
     parser.add_argument("-m", "--message", help="Message to mass DM")
     parser.add_argument(
@@ -155,6 +133,8 @@ if __name__ == "__main__":
                 fetch_followers()
             else:
                 bye()
+        else:
+            fetch_followers()
     elif args.action == "send":
         if args.message:
             message = args.message
@@ -177,3 +157,5 @@ if __name__ == "__main__":
                 mass_dm_followers(message, dry_run=True)
             else:
                 bye()
+    elif args.action == "logout":
+        logout()
