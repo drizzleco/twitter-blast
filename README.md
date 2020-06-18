@@ -131,7 +131,7 @@ optional arguments:
 * ### `send`
 
   - initiate sending mass DM to followers
-  - add `-dry` for a dry run(no DM are sent for real)
+  - add `-dry` for a dry run(no DMs are sent for real)
 
     ```
     $ python tweet_blast.py send
@@ -165,7 +165,7 @@ optional arguments:
 * ### `reset`
   - resets every followers' DM sent flags, so another mass DM can be initiated
     ```
-    (.venv) buntu@Ostrogi7:~/tweet-blast(cli)$ python tweet_blast.py reset
+    $ python tweet_blast.py reset
     Logged in as: SuperTweeter123
     Followers DM sent flags reset!
     ```
@@ -193,4 +193,4 @@ optional arguments:
   - uses database queries to do the heavy lifting
 - Sending DMs
   - just uses `direct_messages/events/new (message_create)`
-  - update row in database whenever it sends a DM to user
+  - updates row in database whenever it sends a DM to user
