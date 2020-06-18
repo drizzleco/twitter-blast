@@ -1,5 +1,16 @@
 from typing import List
+from models import User
 import tweepy, time
+
+
+RANK_BY = {
+    "recent": {"column": None},
+    "followers_count": {"column": User.followers_count},
+    "following_count": {"column": User.friends_count},
+    "listed_count": {"column": User.listed_count},
+    "favourites_count": {"column": User.favourites_count},
+    "statuses_count": {"column": User.statuses_count},
+}
 
 
 def divide_into_chunks(l: List, n: int):

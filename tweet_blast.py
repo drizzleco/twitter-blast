@@ -1,15 +1,21 @@
 from secrets import CONSUMER_KEY, CONSUMER_SECRET
-import tweepy, time, argparse, os, pickle, pydoc
+import tweepy, time, click, os, pickle, pydoc
 from typing import List, Tuple
 from models import User, db
-from helpers import bye, print_progress_bar, divide_into_chunks, rate_limit_handler
+from helpers import (
+    RANK_BY,
+    bye,
+    print_progress_bar,
+    divide_into_chunks,
+    rate_limit_handler,
+)
 from app import app
 
 db.app = app
 db.init_app(app)
 
 
-def auth():
+def auth() -> tweepy.OAuthHandler:
     """
     Reads in user keys if previously saved. If not saved, take user
     through Sign in with Twitter and serialize keys to a file.
@@ -19,8 +25,8 @@ def auth():
         tweepy.OAuthHandler - OAuthHandler to plug into tweepy.API call
     """
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    if os.path.isfile("keys"):
-        token = pickle.load(open("keys", "rb"))
+    if os.path.isfile(".keys"):
+        token = pickle.load(open(".keys", "rb"))
         auth.set_access_token(token[0], token[1])
     else:
         try:
@@ -30,10 +36,10 @@ def auth():
         print("Visit to authorize with twitter: ", redirect_url)
         verifier = input("Paste the verification code here: ")
         try:
-            token = auth.get_access_token(verifier)
+            token = auth.get_access_token(verifier.strip())
         except tweepy.TweepError:
             print("Error! Failed to get access token.")
-        pickle.dump(token, open("keys", "wb"))
+        pickle.dump(token, open(".keys", "wb"))
     return auth
 
 
@@ -105,25 +111,8 @@ def ranked_followers(rank_by: str, value: str) -> List[Tuple[str, str]]:
         value(str) - value to search for. only used for location 
                      and description filter
     """
-    if rank_by == "recent":
-        ranking = {"column": None}
-    elif rank_by == "followers_count":
-        ranking = {"column": User.followers_count}
-    elif rank_by == "following_count":
-        ranking = {"column": User.friends_count}
-    elif rank_by == "listed_count":
-        ranking = {"column": User.listed_count}
-    elif rank_by == "favourites_count":
-        ranking = {"column": User.favourites_count}
-    elif rank_by == "statuses_count":
-        ranking = {"column": User.statuses_count}
-    elif rank_by == "location":
-        ranking = {"location": value}
-    elif rank_by == "description":
-        ranking = {"description": value}
-    else:
-        raise Exception("No such ranking as " + rank_by)
-    if "column" in ranking.keys():
+    ranking = RANK_BY.get(rank_by, None)
+    if ranking:
         return (
             db.session.query(User.id_str, User.screen_name)
             .order_by(db.desc(**ranking))
@@ -131,14 +120,13 @@ def ranked_followers(rank_by: str, value: str) -> List[Tuple[str, str]]:
             .all()
         )
     else:
-        for key, value in ranking.items():
-            return (
-                db.session.query(User.id_str, User.screen_name)
-                .filter(
-                    getattr(User, key).like("%{}%".format(value)), User.dm_sent == False
-                )
-                .all()
+        return (
+            db.session.query(User.id_str, User.screen_name)
+            .filter(
+                getattr(User, rank_by).like("%{}%".format(value)), User.dm_sent == False
             )
+            .all()
+        )
 
 
 def mass_dm_followers(
@@ -165,10 +153,12 @@ def mass_dm_followers(
         bye()
     print()
     if dry_run:
-        print("Dry run is ON. Messages are not actually being sent. Phew")
+        print(
+            "Dry run is ON. Messages are not actually being sent. Phew. Add the --real flag to send DMs"
+        )
     print("Sending message to {} followers".format(total_followers), end="\n\n")
     for i, (id, name) in enumerate(followers):
-        print("\033[FSending DM to {}".format(name))
+        print("\033[F\033[KSending DM to {}".format(name))
         print_progress_bar(i + 1, total_followers, suffix="Sent")
         if dry_run:
             time.sleep(0.01)
@@ -187,43 +177,30 @@ def reset_dm_sent_flag():
     print("Followers DM sent flags reset!")
 
 
-def logout():
+def delete_keys():
     """
     Delete keys file
     """
-    if os.path.isfile("keys"):
-        os.remove("keys")
-        print("Logged out!")
+    if os.path.isfile(".keys"):
+        os.remove(".keys")
+        print("Keys deleted!")
     else:
-        print("You aren't logged in.")
+        print("You haven't been authorized yet.")
 
 
-if __name__ == "__main__":
-    api = tweepy.API(auth())
-    print("Logged in as: " + api.me().screen_name)
-    # parser config
-    parser = argparse.ArgumentParser(
-        description="Mass DM tool for Twitter to convert followers to another platform",
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
-    parser.add_argument(
-        "action",
-        choices=["send", "fetch", "preview", "reset", "logout"],
-        help="""
-        What do you wanna do?
-        - fetch - fetch followers
-        - send - send mass DM to followers
-        - preview - preview followers list ranking
-        - reset - reset DM sent flags
-        - logout - delete stored keys""",
-    )
-    parser.add_argument(
-        "-dry", action="store_true", help="Don't actually send DMs. Just pretend."
-    )
-    args = parser.parse_args()
+# parser config
+@click.command()
+@click.argument(
+    "action", type=click.Choice(["send", "fetch", "preview", "reset", "delete_keys"]),
+)
+@click.option("--real", help="Actually send DMs.", is_flag=True)
+def tweet_blast(action, real):
+    """
+    Mass DM tool for Twitter to convert followers to another platform
+    """
 
     # set ranking and value if action is preview or send
-    if args.action == "preview" or args.action == "send":
+    if action == "preview" or action == "send":
         ranking_choices = [
             "recent",
             "followers_count",
@@ -243,7 +220,7 @@ if __name__ == "__main__":
             value = input("Enter what you want to look for in {}: ".format(ranking))
 
     # execute actions
-    if args.action == "fetch":
+    if action == "fetch":
         # fetch action
         if os.path.isfile("followers.sqlite"):
             refetch = input(
@@ -255,19 +232,19 @@ if __name__ == "__main__":
                 bye()
         else:
             fetch_followers()
-    elif args.action == "preview":
+    elif action == "preview":
         # preview action
         followers = "Order of followers to be DM'ed(ranked by {} {}). Followers whom a DM hasn't been sent are shown:\n".format(
             ranking, value
         )
-        ranked_followers = ranked_followers(rank_by=ranking, value=value)
-        if ranked_followers:
-            for _, user in ranked_followers:
+        ranked = ranked_followers(rank_by=ranking, value=value)
+        if ranked:
+            for _, user in ranked:
                 followers += user + "\n"
         else:
             followers += "No followers matched your criteria or they may have all been sent DMs already :("
         pydoc.pager(followers)
-    elif args.action == "send":
+    elif action == "send":
         # send action
         print("\nNOTE: you may want to preview your followers rankings before sending")
         message = input("What do you wanna say? Type your message below:\n")
@@ -278,9 +255,7 @@ if __name__ == "__main__":
         )
         if confirmed != "y":
             bye()
-        if args.dry:
-            mass_dm_followers(message, rank_by=ranking, value=value, dry_run=True)
-        else:
+        if real:
             send = input(
                 "Dry run is not set. Are you sure you want to initiate the mass DM?? [y/n]: "
             )
@@ -288,8 +263,16 @@ if __name__ == "__main__":
                 mass_dm_followers(message, rank_by=ranking, value=value, dry_run=False)
             else:
                 bye()
-    elif args.action == "reset":
+        else:
+            mass_dm_followers(message, rank_by=ranking, value=value, dry_run=True)
+    elif action == "reset":
         reset_dm_sent_flag()
-    elif args.action == "logout":
-        # logout action
-        logout()
+    elif action == "delete_keys":
+        # delete_keys action
+        delete_keys()
+
+
+if __name__ == "__main__":
+    api = tweepy.API(auth())
+    print("Logged in as: " + api.me().screen_name)
+    tweet_blast()

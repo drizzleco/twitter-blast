@@ -1,18 +1,28 @@
-# twitter-blast
+# Twitter Blast
 
 Mass DM tool for Twitter to convert followers to another platform
+
+![twitter blast](imgs/ex.gif)
 
 # Features
 
 - easy authentication using Sign in with Twitter
 - preview follower rankings before sending the real deal
+- defaults to dry run mode to prevent unintentionally sending out DMs
 - remembers when a DM has been sent to a follower so no unintentional double sends
 - automatically pauses execution to wait out rate limits
 
 # Setup
 
 1. `make install` to install dependencies
-2. On first run, you'll be prompted to authorize with Twitter
+2. Create a file called `secrets.py` in the same directory as `tweet_blast.py` and add your app credentials:
+
+   ```
+    CONSUMER_KEY = ""
+    CONSUMER_SECRET = ""
+   ```
+
+3. On first run, you'll be prompted to authorize with Twitter
    ```
     $ python tweet_blast.py
     Visit to authorize with twitter:  https://api.twitter.com/oauth/authorize?oauth_token=_______________________
@@ -22,23 +32,13 @@ Mass DM tool for Twitter to convert followers to another platform
 # Usage
 
 ```
-usage: tweet_blast.py [-h][-dry] {send,fetch,preview,reset,logout}
+Usage: tweet_blast.py [OPTIONS] [send|fetch|preview|reset|delete_keys]
 
-Mass DM tool for Twitter to convert followers to another platform
+  Mass DM tool for Twitter to convert followers to another platform
 
-positional arguments:
-{send,fetch,preview,reset,logout}
-
- What do you wanna do?
-    - fetch - fetch followers
-    - send - send mass DM to followers
-    - preview - preview followers list ranking
-    - reset - reset DM sent flags
-    - logout - delete stored keys
-
-optional arguments:
--h, --help show this help message and exit
--dry Don't actually send DMs. Just pretend.
+Options:
+  --real  Actually send DMs.
+  --help  Show this message and exit.
 ```
 
 ### Actions
@@ -131,7 +131,8 @@ optional arguments:
 * ### `send`
 
   - initiate sending mass DM to followers
-  - add `-dry` for a dry run(no DMs are sent for real)
+  - defaults to dry run so no DMs are sent out for real
+  - add `--real` to send DMs for real
 
     ```
     $ python tweet_blast.py send
@@ -155,10 +156,10 @@ optional arguments:
     hello world
 
     Are you sure you want to send this? [y/n]: y
-    Dry run is not set. Are you sure you want to initiate the mass DM?? [y/n]: y
 
+    Dry run is ON. Messages are not actually being sent. Phew. Add the --real flag to send DMs
     Sending message to 50 followers
-    Sending DM to EgoAthleticse_7
+    Sending DM to EgoAthletics
     |██████████████████████████████████████████████████| 100.0% Sent
     ```
 
@@ -169,14 +170,14 @@ optional arguments:
     Logged in as: SuperTweeter123
     Followers DM sent flags reset!
     ```
-* ### `logout`
+* ### `delete_keys`
 
   - delete API keys stored from authentication
 
     ```
     $ python tweet_blast.py reset
     Logged in as: SuperTweeter123
-    Followers DM sent flags reset!
+    Keys deleted!
     ```
 
 # How it Works
