@@ -265,7 +265,7 @@ if __name__ == "__main__":
             for _, user in ranked_followers:
                 followers += user + "\n"
         else:
-            followers += "No followers matched this criteria :("
+            followers += "No followers matched your criteria or they may have all been sent DMs already :("
         pydoc.pager(followers)
     elif args.action == "send":
         # send action
