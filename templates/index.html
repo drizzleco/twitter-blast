@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content%}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4">Twitter Blast</h1>
+        <p class="lead">Mass DM tool for Twitter to convert followers to another platform</p>
+    </div>
+</div>
+<div class="container">
+    {% if not username %}
+    <a href="{{redirect_url}}" class="btn btn-social btn-twitter btn-primary text-light text-center">
+        <i class="fa fa-twitter"></i> Sign in with Twitter
+    </a>
+    {% else %}
+    <h4>Logged in as: {{username}} </h4>
+    {% endif %}
+
+    {% if followers %}
+    <h3>Your Followers</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Username</th>
+                <th scope="col">Followers</th>
+                <th scope="col">Following</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for follower in followers %}
+            <tr>
+                <th scope="row">{{loop.index}}</th>
+                <td>{{follower.screen_name}}</td>
+                <td>{{follower.followers_count}}</td>
+                <td>{{follower.friends_count}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <h4>You haven't fetched any followers yet!</h4>
+    <form action="/fetch" method="post">
+        <input class="btn btn-primary" type="submit" name="fetch" value="Fetch Followers" />
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

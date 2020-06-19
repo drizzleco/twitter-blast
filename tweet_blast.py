@@ -1,7 +1,7 @@
 from secrets import CLI_CONSUMER_KEY, CLI_CONSUMER_SECRET
 import tweepy, time, click, os, pickle, pydoc
 from typing import List, Tuple
-from models import User, db
+from models import User, Follower, db
 from helpers import (
     RANK_BY,
     bye,
@@ -9,10 +9,26 @@ from helpers import (
     divide_into_chunks,
     rate_limit_handler,
 )
+
 from app import app
 
 db.app = app
 db.init_app(app)
+
+follower_keys = [
+    "id_str",
+    "name",
+    "screen_name",
+    "location",
+    "description",
+    "followers_count",
+    "friends_count",
+    "listed_count",
+    "created_at",
+    "favourites_count",
+    "verified",
+    "statuses_count",
+]
 
 
 def auth() -> tweepy.OAuthHandler:
@@ -48,23 +64,8 @@ def fetch_followers():
     Use tweepy to fetch user's followers' ids and then fetch their user objects
     and save to the db.
     """
-    user_keys = [
-        "id_str",
-        "name",
-        "screen_name",
-        "location",
-        "description",
-        "followers_count",
-        "friends_count",
-        "listed_count",
-        "created_at",
-        "favourites_count",
-        "verified",
-        "statuses_count",
-    ]
     total_followers = api.me().followers_count
     print("Fetching {} followers".format(total_followers))
-    db.drop_all()
     db.create_all()
     follower_ids = []
     print("Fetching follower ids!")
@@ -73,8 +74,10 @@ def fetch_followers():
     print("Fetching user objects from ids!")
     for list_of_100 in list(divide_into_chunks(follower_ids, 100)):
         for i, user in enumerate(api.lookup_users(user_ids=list_of_100)):
-            user_dict = dict((k, user.__dict__[k]) for k in user_keys)
-            db.session.add(User(**user_dict))
+            user_dict = dict((k, user.__dict__[k]) for k in follower_keys)
+            user = User.query.filter_by(username=api.me().screen_name).first()
+            user.followers.append(Follower(**user_dict))
+            db.session.add(user)
             db.session.commit()
             print_progress_bar(
                 i + 1,
