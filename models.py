@@ -17,3 +17,4 @@ class User(db.Model):
     statuses_count = db.Column(db.Integer)
     created_at = db.Column(db.DateTime)
     verified = db.Column(db.Boolean)
+    dm_sent = db.Column(db.Boolean, default=False)
