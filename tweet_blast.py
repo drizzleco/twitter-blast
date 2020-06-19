@@ -1,4 +1,4 @@
-from secrets import CONSUMER_KEY, CONSUMER_SECRET
+from secrets import CLI_CONSUMER_KEY, CLI_CONSUMER_SECRET
 import tweepy, time, click, os, pickle, pydoc
 from typing import List, Tuple
 from models import User, db
@@ -24,7 +24,7 @@ def auth() -> tweepy.OAuthHandler:
     returns:
         tweepy.OAuthHandler - OAuthHandler to plug into tweepy.API call
     """
-    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    auth = tweepy.OAuthHandler(CLI_CONSUMER_KEY, CLI_CONSUMER_SECRET)
     if os.path.isfile(".keys"):
         token = pickle.load(open(".keys", "rb"))
         auth.set_access_token(token[0], token[1])
@@ -168,7 +168,98 @@ def mass_dm_followers(
             # send_message(id, message) # DONT UNCOMMENT UNLESS U REALLY KNOW WHAT UR DOIN
 
 
-def reset_dm_sent_flag():
+# handlers
+def prompt_ranking_value() -> Tuple[str, str]:
+    """
+    Prompt user for ranking choice and value if needed
+
+    returns:
+        ranking(str) - string value of ranking choice selected
+        value(str) - string to search filter_by, if needed
+    """
+    ranking_choices = [
+        "recent",
+        "followers_count",
+        "following_count",
+        "statuses_count",
+        "listed_count",
+        "favourites_count",
+        "location",
+        "description",
+    ]
+    value = ""
+    print("Choose how you'd like to rank your followers:")
+    for num, choice in enumerate(ranking_choices):
+        print("{}) {}".format(str(num + 1), choice))
+    ranking = ranking_choices[int(input("Enter the number of your choice: ")) - 1]
+    if ranking == "location" or ranking == "description":
+        value = input("Enter what you want to look for in {}: ".format(ranking))
+    return ranking, value
+
+
+def handle_fetch():
+    """
+    Fetch action
+    """
+    if os.path.isfile("followers.sqlite"):
+        refetch = input(
+            "You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: "
+        )
+        if refetch is "y":
+            fetch_followers()
+        else:
+            bye()
+    else:
+        fetch_followers()
+
+
+def handle_preview():
+    """
+    Preview action
+    """
+    ranking, value = prompt_ranking_value()
+    followers = "Order of followers to be DM'ed(ranked by {} {}). Followers whom a DM hasn't been sent are shown:\n".format(
+        ranking, value
+    )
+    ranked = ranked_followers(rank_by=ranking, value=value)
+    if ranked:
+        for _, user in ranked:
+            followers += user + "\n"
+    else:
+        followers += "No followers matched your criteria or they may have all been sent DMs already :("
+    pydoc.pager(followers)
+
+
+def handle_send(real: bool):
+    """
+    Send action
+
+    params:
+        real(bool) - click real flag
+    """
+    ranking, value = prompt_ranking_value()
+    print("\nNOTE: you may want to preview your followers rankings before sending")
+    message = input("What do you wanna say? Type your message below:\n")
+    confirmed = input(
+        "Here is your message one more time:\n\n{}\n\nAre you sure you want to send this? [y/n]: ".format(
+            message
+        )
+    )
+    if confirmed != "y":
+        bye()
+    if real:
+        send = input(
+            "Dry run is not set. Are you sure you want to initiate the mass DM?? [y/n]: "
+        )
+        if send == "y":
+            mass_dm_followers(message, rank_by=ranking, value=value, dry_run=False)
+        else:
+            bye()
+    else:
+        mass_dm_followers(message, rank_by=ranking, value=value, dry_run=True)
+
+
+def handle_reset():
     """
     Reset all followers dm_sent column to False
     """
@@ -177,7 +268,7 @@ def reset_dm_sent_flag():
     print("Followers DM sent flags reset!")
 
 
-def delete_keys():
+def handle_delete_keys():
     """
     Delete keys file
     """
@@ -198,78 +289,16 @@ def tweet_blast(action, real):
     """
     Mass DM tool for Twitter to convert followers to another platform
     """
-
-    # set ranking and value if action is preview or send
-    if action == "preview" or action == "send":
-        ranking_choices = [
-            "recent",
-            "followers_count",
-            "following_count",
-            "statuses_count",
-            "listed_count",
-            "favourites_count",
-            "location",
-            "description",
-        ]
-        value = ""
-        print("Choose how you'd like to rank your followers:")
-        for num, choice in enumerate(ranking_choices):
-            print("{}) {}".format(str(num + 1), choice))
-        ranking = ranking_choices[int(input("Enter the number of your choice: ")) - 1]
-        if ranking == "location" or ranking == "description":
-            value = input("Enter what you want to look for in {}: ".format(ranking))
-
-    # execute actions
     if action == "fetch":
-        # fetch action
-        if os.path.isfile("followers.sqlite"):
-            refetch = input(
-                "You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: "
-            )
-            if refetch is "y":
-                fetch_followers()
-            else:
-                bye()
-        else:
-            fetch_followers()
+        handle_fetch()
     elif action == "preview":
-        # preview action
-        followers = "Order of followers to be DM'ed(ranked by {} {}). Followers whom a DM hasn't been sent are shown:\n".format(
-            ranking, value
-        )
-        ranked = ranked_followers(rank_by=ranking, value=value)
-        if ranked:
-            for _, user in ranked:
-                followers += user + "\n"
-        else:
-            followers += "No followers matched your criteria or they may have all been sent DMs already :("
-        pydoc.pager(followers)
+        handle_preview()
     elif action == "send":
-        # send action
-        print("\nNOTE: you may want to preview your followers rankings before sending")
-        message = input("What do you wanna say? Type your message below:\n")
-        confirmed = input(
-            "Here is your message one more time:\n\n{}\n\nAre you sure you want to send this? [y/n]: ".format(
-                message
-            )
-        )
-        if confirmed != "y":
-            bye()
-        if real:
-            send = input(
-                "Dry run is not set. Are you sure you want to initiate the mass DM?? [y/n]: "
-            )
-            if send == "y":
-                mass_dm_followers(message, rank_by=ranking, value=value, dry_run=False)
-            else:
-                bye()
-        else:
-            mass_dm_followers(message, rank_by=ranking, value=value, dry_run=True)
+        handle_send(real)
     elif action == "reset":
-        reset_dm_sent_flag()
+        handle_reset()
     elif action == "delete_keys":
-        # delete_keys action
-        delete_keys()
+        handle_delete_keys()
 
 
 if __name__ == "__main__":
