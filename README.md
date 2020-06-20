@@ -12,10 +12,10 @@ Mass DM tool for Twitter to convert followers to another platform
 - remembers when a DM has been sent to a follower so no unintentional double sends
 - automatically pauses execution to wait out rate limits
 
-# Setup
+# Getting Started
 
 1. `make install` to install dependencies
-2. Create a file called `secrets.py` in the same directory as `tweet_blast.py` and add your app credentials:
+2. Create a file called `secrets.py` in the same directory as `twitter_blast.py` and add your app credentials:
 
    ```
     CONSUMER_KEY = ""
@@ -24,15 +24,18 @@ Mass DM tool for Twitter to convert followers to another platform
 
 3. On first run, you'll be prompted to authorize with Twitter
    ```
-    $ python tweet_blast.py
+    $ python twitter_blast.py
     Visit to authorize with twitter:  https://api.twitter.com/oauth/authorize?oauth_token=_______________________
     Paste the verification code here: ________
    ```
+4. `python twitter_blast.py fetch` to fetch your followers
+5. `python twitter_blast.py preview` to test out the ranking system and see how your followers will be prioritized
+6. `python twitter_blast.py send` to dry send a DM to your followers(add `--real` to send them for real!)
 
 # Usage
 
 ```
-Usage: tweet_blast.py [OPTIONS] [send|fetch|preview|reset|delete_keys]
+Usage: twitter_blast.py [OPTIONS] [send|fetch|preview|reset|delete_keys]
 
   Mass DM tool for Twitter to convert followers to another platform
 
@@ -46,7 +49,7 @@ Options:
 - ### `fetch`
   - download followers to a local database
     ```
-    $ python tweet_blast.py fetch
+    $ python twitter_blast.py fetch
     Logged in as: SuperTweeter123
     You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: y
     Fetching 50 followers
@@ -73,7 +76,7 @@ Options:
   - good for getting an idea of the follower prioritized by `send`
 
     ```
-    $ python tweet_blast.py preview
+    $ python twitter_blast.py preview
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -90,7 +93,7 @@ Options:
   - filtering by location or description will prompt you to enter a string to search for
 
     ```
-    $ python tweet_blast.py preview
+    $ python twitter_blast.py preview
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -135,7 +138,7 @@ Options:
   - add `--real` to send DMs for real
 
     ```
-    $ python tweet_blast.py send
+    $ python twitter_blast.py send
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -166,7 +169,7 @@ Options:
 * ### `reset`
   - resets every followers' DM sent flags, so another mass DM can be initiated
     ```
-    $ python tweet_blast.py reset
+    $ python twitter_blast.py reset
     Logged in as: SuperTweeter123
     Followers DM sent flags reset!
     ```
@@ -175,7 +178,7 @@ Options:
   - delete API keys stored from authentication
 
     ```
-    $ python tweet_blast.py reset
+    $ python twitter_blast.py reset
     Logged in as: SuperTweeter123
     Keys deleted!
     ```

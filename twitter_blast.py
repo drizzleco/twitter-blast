@@ -222,7 +222,7 @@ def handle_fetch():
     """
     Fetch action
     """
-    if os.path.isfile("tweet_blast.sqlite"):
+    if os.path.isfile("twitter_blast.sqlite"):
         refetch = input(
             "You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: "
         )
@@ -317,7 +317,7 @@ def handle_delete_keys():
     "action", type=click.Choice(["send", "fetch", "preview", "reset", "delete_keys"]),
 )
 @click.option("--real", help="Actually send DMs.", is_flag=True)
-def tweet_blast(action, real):
+def twitter_blast(action, real):
     """
     Mass DM tool for Twitter to convert followers to another platform
     """
@@ -337,4 +337,4 @@ if __name__ == "__main__":
     api = tweepy.API(auth())
     username = api.me().screen_name
     print("Logged in as: " + username)
-    tweet_blast()
+    twitter_blast()

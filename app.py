@@ -14,12 +14,12 @@ from secrets import HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, SECRET_KEY
 import tweepy
 from flask import Flask
 from models import User, Follower, db
-import tweet_blast
+import twitter_blast
 
 
 app = Flask(__name__)
 CORS(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tweet_blast.sqlite"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///twitter_blast.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = SECRET_KEY
 db.app = app
@@ -72,7 +72,9 @@ def home():
     has_fetched_followers = user.followers
     try:
         dms_all_sent = False
-        followers = tweet_blast.ranked_followers(username, rank_by=rank_by, value=value)
+        followers = twitter_blast.ranked_followers(
+            username, rank_by=rank_by, value=value
+        )
     except:
         dms_all_sent = True
         followers = None
@@ -83,7 +85,7 @@ def home():
             dms_all_sent=dms_all_sent,
             has_fetched_followers=has_fetched_followers,
             followers=followers,
-            ranking_choices=tweet_blast.ranking_choices,
+            ranking_choices=twitter_blast.ranking_choices,
             rank_by=rank_by,
             value=value,
         )
@@ -93,7 +95,7 @@ def home():
 def fetch():
     api = tweepy.API(auth)
     username = api.me().screen_name
-    tweet_blast.fetch_followers(username, api)
+    twitter_blast.fetch_followers(username, api)
     return redirect(url_for("home"))
 
 
@@ -113,7 +115,7 @@ def send():
     value = request.args.get("value")
     if not value:
         value = ""
-    tweet_blast.mass_dm_followers(username, message, rank_by, value, not real)
+    twitter_blast.mass_dm_followers(username, message, rank_by, value, not real)
     if real:
         flash("Mass DM started!")
     else:
@@ -124,7 +126,7 @@ def send():
 @app.route("/reset", methods=["POST"])
 def reset():
     username = tweepy.API(auth).me().screen_name
-    tweet_blast.handle_reset(username)
+    twitter_blast.handle_reset(username)
     return redirect(url_for("home"))
 
 
