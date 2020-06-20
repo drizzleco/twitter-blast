@@ -1,4 +1,4 @@
-from secrets import CLI_CONSUMER_KEY, CLI_CONSUMER_SECRET
+from secrets import CONSUMER_KEY, CONSUMER_SECRET
 import tweepy, time, click, os, pickle, pydoc
 from typing import List, Tuple
 from models import User, Follower, db
@@ -48,7 +48,7 @@ def auth() -> tweepy.OAuthHandler:
     returns:
         tweepy.OAuthHandler - OAuthHandler to plug into tweepy.API call
     """
-    auth = tweepy.OAuthHandler(CLI_CONSUMER_KEY, CLI_CONSUMER_SECRET)
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     if os.path.isfile(".keys"):
         token = pickle.load(open(".keys", "rb"))
         auth.set_access_token(token[0], token[1])

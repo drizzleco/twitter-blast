@@ -10,7 +10,7 @@ from flask import (
     flash,
 )
 from flask_cors import CORS
-from secrets import CONSUMER_KEY, CONSUMER_SECRET, SECRET_KEY
+from secrets import HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, SECRET_KEY
 import tweepy
 from flask import Flask
 from models import User, Follower, db
@@ -25,7 +25,9 @@ app.secret_key = SECRET_KEY
 db.app = app
 db.init_app(app)
 
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET, "http://127.0.0.1:5000")
+auth = tweepy.OAuthHandler(
+    HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, "http://127.0.0.1:5000"
+)
 
 
 @app.route("/")
