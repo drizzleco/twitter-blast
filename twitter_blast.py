@@ -67,10 +67,14 @@ def auth() -> tweepy.OAuthHandler:
     return auth
 
 
-def fetch_followers(username, api):
+def fetch_followers(username: str, api: tweepy.API):
     """
     Use tweepy to fetch user's followers' ids and then fetch their user objects
     and save to the db.
+
+    params:
+        username(str) - username of user to fetch followers for
+        api(tweepy.API) - tweepy api instance
     """
     total_followers = api.me().followers_count
     print("Fetching {} followers".format(total_followers))
@@ -98,13 +102,14 @@ def fetch_followers(username, api):
     print("Done!")
 
 
-def send_message(user_id: str, message: str, api):
+def send_message(user_id: str, message: str, api: tweepy.API):
     """
     Send message to user_id
 
     params:
         user_id(str) - user id of user as string
         message(str) - message to send
+        api(tweepy.API) - tweepy api instance
     """
     try:
         api.send_direct_message(user_id, message)
@@ -113,7 +118,7 @@ def send_message(user_id: str, message: str, api):
         time.sleep(24 * 60 * 60)
 
 
-def ranked_followers(username: str, rank_by: str, value: str) -> Follower:
+def ranked_followers(username: str, rank_by: str, value: str) -> List[Follower]:
     """
     Rank followers based on specified criteria using db queries. Return a list
     of ranked followers' user id and their screen names who have not already
@@ -124,6 +129,8 @@ def ranked_followers(username: str, rank_by: str, value: str) -> Follower:
         rank_by(str) - criteria to rank by
         value(str) - value to search for. only used for location 
                      and description filter
+    returns:
+        list of followers ranked accordingly
     """
     ranking = RANK_BY.get(rank_by, None)
     user = User.query.filter_by(username=username).first()
@@ -171,6 +178,7 @@ def mass_dm_followers(
         value(str) - value to search for. only used for location 
                      and description filter
         dry_run(bool) - set to True to only pretend to send messages
+        api(tweepy.API) - tweepy api instance
     """
     try:
         followers = ranked_followers(username, rank_by, value)

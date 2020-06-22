@@ -10,7 +10,9 @@ install:
 	python3 -m venv .venv; \
 	. .venv/bin/activate; \
 	pip install -r requirements.txt
-	test -f $(SECRETS_FILE) || echo 'CONSUMER_KEY = ""\ CONSUMER_SECRET = ""' > $(SECRETS_FILE)
+	test -f $(SECRETS_FILE) || echo 'CONSUMER_KEY = "" \
+	CONSUMER_SECRET = "" \
+	SECRET_KEY = ""' > $(SECRETS_FILE)
 
 ### venv - start venv
 .PHONY: venv
