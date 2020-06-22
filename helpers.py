@@ -1,15 +1,15 @@
 from typing import List
-from models import User
+from models import Follower
 import tweepy, time
 
 
 RANK_BY = {
     "recent": {"column": None},
-    "followers_count": {"column": User.followers_count},
-    "following_count": {"column": User.friends_count},
-    "listed_count": {"column": User.listed_count},
-    "favourites_count": {"column": User.favourites_count},
-    "statuses_count": {"column": User.statuses_count},
+    "followers_count": {"column": Follower.followers_count},
+    "following_count": {"column": Follower.friends_count},
+    "listed_count": {"column": Follower.listed_count},
+    "favourites_count": {"column": Follower.favourites_count},
+    "statuses_count": {"column": Follower.statuses_count},
 }
 
 

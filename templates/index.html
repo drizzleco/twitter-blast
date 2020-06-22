@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content%}
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="display-4">Twitter Blast</h1>
+                <p class="lead">Easily connect with all your followers by sending a mass DM!</p>
+                {% if not username %}
+                <a href="{{redirect_url}}" class="btn btn-social btn-twitter btn-primary text-light text-center">
+                    <i class="fa fa-twitter"></i> Sign in with Twitter
+                </a>
+                {% else %}
+                <p class="lead">Logged in as: {{username}} </p>
+                <button class="btn btn-danger" onclick="window.location = '/logout'">Logout</button>
+                {% endif %}
+            </div>
+            <div class="col-5">
+                <h5>How it works</h5>
+                <ol>
+                    <li>Authenticate with Twitter</li>
+                    <li>Choose how you'd like to prioritize your followers</li>
+                    <li>Send out your message!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% if username %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3>Send mass DM</h3>
+            <h5>Rank Followers by:</h5>
+            <form action="/send" method="post">
+                <select id="ranking-select" name="rank_by" class="custom-select custom-select-lg mb-3"
+                    onchange="toggle_ranking(this.value);">
+                    {% for choice in ranking_choices %}
+                    <option {{'selected' if rank_by == choice}} value="{{choice}}">{{choice}}</option>
+                    {% endfor %}
+                </select>
+                <div id="search-box" class="{{'d-none' if rank_by != 'location' and rank_by != 'description' }}">
+                    <h3>Search for:</h3>
+                    <input type="text" class="form-control" name="value" value="{{value}}">
+                    <button class="btn btn-primary" type="button" onclick="filter();">Filter</button>
+                </div>
+                <h3>Message:</h3>
+                <textarea class="form-control" rows=3 name="message"></textarea>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="real" id="real">
+                    <label class="form-check-label" for="real">
+                        Send messages for real!
+                    </label>
+                </div>
+                <input class="btn btn-primary" type="submit" name="send" value="Send DM!" onclick="showLoading(this)" />
+                <br>
+                <div class="loading d-none align-items-center">
+                    <div class="spinner-border m-2" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    Sending mass DM!
+                </div>
+            </form>
+        </div>
+        <div class="col">
+            {% if followers %}
+            <h3>Your Followers(ranked by {{rank_by}})</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Followers</th>
+                        <th scope="col">Following</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for follower in followers %}
+                    <tr>
+                        <th scope="row">{{loop.index}}</th>
+                        <td>{{follower.screen_name}}</td>
+                        <td>{{follower.followers_count}}</td>
+                        <td>{{follower.friends_count}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% elif dms_all_sent%}
+            <h4>All your followers have been sent DMs already :(</h4>
+            <form action="/reset" method="post">
+                <input class="btn btn-primary" type="submit" name="reset" value="Reset DM sent flags" />
+            </form>
+            {% elif has_fetched_followers %}
+            <h4>No followers matched your criteria</h4>
+            {% else %}
+            <h4>You haven't fetched any followers yet!</h4>
+            <form action="/fetch" method="post">
+                <input class="btn btn-primary" type="submit" name="fetch" value="Fetch Followers"
+                    onclick="showLoading(this)" />
+                <br>
+                <div class="loading d-none align-items-center">
+                    <div class="spinner-border m-2" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    Fetching followers! This may take a while.
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif  %}
+{% endblock %}

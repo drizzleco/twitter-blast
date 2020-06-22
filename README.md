@@ -1,8 +1,16 @@
-# Twitter Blast
+# Twitter Blast(CLI/Flask versions)
 
 Mass DM tool for Twitter to convert followers to another platform
 
-![twitter blast](imgs/ex.gif)
+Solution to: https://github.com/balajis/twitter-export/
+
+### CLI Version
+
+![twitter blast](imgs/cli.gif)
+
+### Flask Version
+
+![twitter blast](imgs/flask.gif)
 
 # Features
 
@@ -12,27 +20,39 @@ Mass DM tool for Twitter to convert followers to another platform
 - remembers when a DM has been sent to a follower so no unintentional double sends
 - automatically pauses execution to wait out rate limits
 
-# Setup
+# Getting Started(CLI version)
 
 1. `make install` to install dependencies
-2. Create a file called `secrets.py` in the same directory as `tweet_blast.py` and add your app credentials:
+2. Edit `secrets.py`(automatically created) in the same directory as `twitter_blast.py` and add your app credentials:
 
-   ```
+   ```python
+    HOSTED_CONSUMER_KEY = "" # add this if you want to test the flask app locally
+    HOSTED_CONSUMER_SECRET = "" # add this if you want to test the flask app locally
     CONSUMER_KEY = ""
     CONSUMER_SECRET = ""
+    SECRET_KEY = ""
    ```
 
 3. On first run, you'll be prompted to authorize with Twitter
    ```
-    $ python tweet_blast.py
+    $ python twitter_blast.py
     Visit to authorize with twitter:  https://api.twitter.com/oauth/authorize?oauth_token=_______________________
     Paste the verification code here: ________
    ```
+4. `python twitter_blast.py fetch` to fetch your followers
+5. `python twitter_blast.py preview` to test out the ranking system and see how your followers will be prioritized
+6. `python twitter_blast.py send` to dry send a DM to your followers(add `--real` to send them for real!)
 
-# Usage
+# Getting Started(Flask version)
+
+1. Complete steps 1 and 2 from above.
+2. Add `http://127.0.0.1:5000` to your callback URLs in Twitter dev app settings
+3. Run `python app.py` once you are in your python venv
+
+# Usage(CLI version)
 
 ```
-Usage: tweet_blast.py [OPTIONS] [send|fetch|preview|reset|delete_keys]
+Usage: twitter_blast.py [OPTIONS] [send|fetch|preview|reset|delete_keys]
 
   Mass DM tool for Twitter to convert followers to another platform
 
@@ -46,7 +66,7 @@ Options:
 - ### `fetch`
   - download followers to a local database
     ```
-    $ python tweet_blast.py fetch
+    $ python twitter_blast.py fetch
     Logged in as: SuperTweeter123
     You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: y
     Fetching 50 followers
@@ -73,7 +93,7 @@ Options:
   - good for getting an idea of the follower prioritized by `send`
 
     ```
-    $ python tweet_blast.py preview
+    $ python twitter_blast.py preview
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -90,7 +110,7 @@ Options:
   - filtering by location or description will prompt you to enter a string to search for
 
     ```
-    $ python tweet_blast.py preview
+    $ python twitter_blast.py preview
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -135,7 +155,7 @@ Options:
   - add `--real` to send DMs for real
 
     ```
-    $ python tweet_blast.py send
+    $ python twitter_blast.py send
     Logged in as: SuperTweeter123
     Choose how you'd like to rank your followers:
     1) recent
@@ -166,7 +186,7 @@ Options:
 * ### `reset`
   - resets every followers' DM sent flags, so another mass DM can be initiated
     ```
-    $ python tweet_blast.py reset
+    $ python twitter_blast.py reset
     Logged in as: SuperTweeter123
     Followers DM sent flags reset!
     ```
@@ -175,12 +195,12 @@ Options:
   - delete API keys stored from authentication
 
     ```
-    $ python tweet_blast.py reset
+    $ python twitter_blast.py reset
     Logged in as: SuperTweeter123
     Keys deleted!
     ```
 
-# How it Works
+# Behind the Scenes
 
 - Fetching followers data
   - fetches ids of followers first using `followers/ids`
@@ -191,7 +211,7 @@ Options:
     - with user-level auth, you can make 900 requests every 15 minutes
     - TOTAL: 90,000 users every 15 minutes
 - Ranking Followers
-  - uses database queries to do the heavy lifting
+  - uses SQLAlchemy database queries to do the heavy lifting
 - Sending DMs
-  - just uses `direct_messages/events/new (message_create)`
-  - updates row in database whenever it sends a DM to user
+  - uses tweepy's wrapper for `direct_messages/events/new (message_create)`
+  - updates database to keep track of which followers have been sent DMs
