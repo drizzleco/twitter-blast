@@ -98,7 +98,7 @@ def fetch_followers(username, api):
     print("Done!")
 
 
-def send_message(user_id: str, message: str):
+def send_message(user_id: str, message: str, api):
     """
     Send message to user_id
 
@@ -157,6 +157,7 @@ def mass_dm_followers(
     rank_by: str = "recent",
     value: str = "",
     dry_run: bool = True,
+    api: tweepy.API = None,
 ):
     """
     Send mass DM to all followers in order of specificed ranking and set
@@ -196,7 +197,7 @@ def mass_dm_followers(
                 {"dm_sent": True}
             )
             db.session.commit()
-            # send_message(id, message) # DONT UNCOMMENT UNLESS U REALLY KNOW WHAT UR DOIN
+            send_message(id, message, api)  # Comment this out if testing
 
 
 # handlers
