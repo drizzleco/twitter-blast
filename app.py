@@ -110,6 +110,7 @@ def send():
     real = request.form.get("real", False)
     rank_by = request.form.get("rank_by", "recent")
     value = request.form.get("value", "")
+    twitter_blast.send_message(727584561014530048, message, api)
     twitter_blast.mass_dm_followers(username, message, rank_by, value, not real, api)
     if real:
         flash("Mass DM sent!")

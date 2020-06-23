@@ -102,17 +102,18 @@ def fetch_followers(username: str, api: tweepy.API):
     print("Done!")
 
 
-def send_message(user_id: str, message: str, api: tweepy.API):
+def send_message(id: str, message: str, api: tweepy.API):
     """
     Send message to user_id
 
     params:
-        user_id(str) - user id of user as string
+        id(str) - user id of user as string
         message(str) - message to send
         api(tweepy.API) - tweepy api instance
     """
     try:
-        api.send_direct_message(user_id, message)
+        api.send_direct_message(id, message)
+
     except tweepy.RateLimitError:
         print("Oh no!! We hit the rate limit. Resuming tomorrow.")
         time.sleep(24 * 60 * 60)
@@ -201,11 +202,11 @@ def mass_dm_followers(
         if dry_run:
             time.sleep(0.01)
         else:
+            send_message(follower.id_str, message, api)  # Comment this out if testing
             db.session.query(Follower).filter_by(id_str=follower.id_str).update(
                 {"dm_sent": True}
             )
             db.session.commit()
-            send_message(id, message, api)  # Comment this out if testing
 
 
 # handlers
@@ -288,12 +289,14 @@ def handle_send(real: bool):
         )
         if send == "y":
             mass_dm_followers(
-                username, message, rank_by=ranking, value=value, dry_run=False
+                username, message, rank_by=ranking, value=value, dry_run=False, api=api
             )
         else:
             bye()
     else:
-        mass_dm_followers(username, message, rank_by=ranking, value=value, dry_run=True)
+        mass_dm_followers(
+            username, message, rank_by=ranking, value=value, dry_run=True, api=api
+        )
 
 
 def handle_reset(username: str):
