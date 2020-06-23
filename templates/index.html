@@ -66,6 +66,9 @@
         <div class="col">
             {% if followers %}
             <h3>Your Followers(ranked by {{rank_by}})</h3>
+            <form action="/reset" method="post">
+                <input class="btn btn-primary" type="submit" name="reset" value="Reset DM sent flags" />
+            </form>
             <table class="table">
                 <thead>
                     <tr>
