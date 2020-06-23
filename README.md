@@ -25,6 +25,8 @@ Solution to: https://github.com/balajis/twitter-export/
 1. `make install` to install dependencies
 2. Edit `secrets.py`(automatically created) in the same directory as `twitter_blast.py` and add your app credentials:
 
+   - make sure your Twitter app has "Read, write, and Direct Messages" permission
+
    ```python
     HOSTED_CONSUMER_KEY = "" # add this if you want to test the flask app locally
     HOSTED_CONSUMER_SECRET = "" # add this if you want to test the flask app locally
