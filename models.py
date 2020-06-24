@@ -11,7 +11,7 @@ class User(db.Model):
 
 class Follower(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    id_str = db.Column(db.String, unique=True, nullable=False)
+    id_str = db.Column(db.String, nullable=False)
     name = db.Column(db.String)
     screen_name = db.Column(db.String)
     location = db.Column(db.String)

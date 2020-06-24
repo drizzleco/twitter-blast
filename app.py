@@ -25,17 +25,28 @@ app.secret_key = SECRET_KEY
 db.app = app
 db.init_app(app)
 
-auth = tweepy.OAuthHandler(
-    HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, "http://127.0.0.1:5000"
-)
+
+def generate_auth() -> tweepy.OAuthHandler:
+    """
+    Generate a fresh tweepy auth handler
+
+    returns:
+        (tweepy.OAuthHandler) - fully set up auth with user tokens from session
+    """
+    access_token = session.get("access_token")
+    access_token_secret = session.get("access_token_secret")
+    auth = tweepy.OAuthHandler(
+        HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, "http://127.0.0.1:5000"
+    )
+    auth.set_access_token(access_token, access_token_secret)
+    return auth
 
 
 @app.route("/")
 def home():
+    auth = generate_auth()
     token = request.args.get("oauth_token")
     verifier = request.args.get("oauth_verifier")
-    access_token = session.get("access_token")
-    access_token_secret = session.get("access_token_secret")
     if token:
         # oauth redirect
         auth.request_token = {
@@ -48,10 +59,7 @@ def home():
             session["access_token_secret"] = auth.access_token_secret
         except tweepy.TweepError:
             print("Error! Failed to get access token.")
-    elif access_token:
-        # token already stored in session
-        auth.set_access_token(access_token, access_token_secret)
-    else:
+    elif not auth.access_token:
         # sign in prompt
         redirect_url = auth.get_authorization_url()
         return render_template("index.html", redirect_url=redirect_url)
@@ -93,6 +101,7 @@ def home():
 
 @app.route("/fetch", methods=["POST"])
 def fetch():
+    auth = generate_auth()
     api = tweepy.API(auth)
     username = api.me().screen_name
     twitter_blast.fetch_followers(username, api)
@@ -101,6 +110,7 @@ def fetch():
 
 @app.route("/send", methods=["POST"])
 def send():
+    auth = generate_auth()
     api = tweepy.API(auth)
     username = tweepy.API(auth).me().screen_name
     message = request.form.get("message")
@@ -120,6 +130,7 @@ def send():
 
 @app.route("/reset", methods=["POST"])
 def reset():
+    auth = generate_auth()
     username = tweepy.API(auth).me().screen_name
     twitter_blast.handle_reset(username)
     return redirect(url_for("home"))
