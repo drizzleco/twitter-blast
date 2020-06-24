@@ -16,7 +16,7 @@ from flask import Flask
 from models import User, Follower, db
 import twitter_blast
 
-
+CALLBACK_URL = "http://127.0.0.1:5000"
 app = Flask(__name__)
 CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///twitter_blast.sqlite"
@@ -36,7 +36,7 @@ def generate_auth() -> tweepy.OAuthHandler:
     access_token = session.get("access_token")
     access_token_secret = session.get("access_token_secret")
     auth = tweepy.OAuthHandler(
-        HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, "http://127.0.0.1:5000"
+        HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, CALLBACK_URL
     )
     auth.set_access_token(access_token, access_token_secret)
     return auth
