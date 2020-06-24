@@ -85,12 +85,13 @@ def fetch_followers(username: str, api: tweepy.API):
         follower_ids.append(id)
     print("Fetching user objects from ids!")
     for list_of_100 in list(divide_into_chunks(follower_ids, 100)):
-        for i, user in enumerate(api.lookup_users(user_ids=list_of_100)):
-            user_dict = dict((k, user.__dict__[k]) for k in follower_keys)
+        for i, follower in enumerate(api.lookup_users(user_ids=list_of_100)):
+            follower_dict = dict((k, follower.__dict__[k]) for k in follower_keys)
             user = User.query.filter_by(username=username).first()
             if not user:
                 user = User(username=username)
-            user.followers.append(Follower(**user_dict))
+            follower = Follower(**follower_dict)
+            user.followers.append(follower)
             db.session.add(user)
             db.session.commit()
             print_progress_bar(
@@ -181,6 +182,7 @@ def mass_dm_followers(
         dry_run(bool) - set to True to only pretend to send messages
         api(tweepy.API) - tweepy api instance
     """
+    user = User.query.filter_by(username=username).first()
     try:
         followers = ranked_followers(username, rank_by, value)
     except Exception as e:
@@ -203,9 +205,9 @@ def mass_dm_followers(
             time.sleep(0.01)
         else:
             send_message(follower.id_str, message, api)  # Comment this out if testing
-            db.session.query(Follower).filter_by(id_str=follower.id_str).update(
-                {"dm_sent": True}
-            )
+            db.session.query(Follower).filter_by(
+                id_str=follower.id_str, user_id=user.id
+            ).update({"dm_sent": True})
             db.session.commit()
 
 
