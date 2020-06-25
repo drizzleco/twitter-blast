@@ -49,7 +49,11 @@ Solution to: https://github.com/balajis/twitter-export/
 
 1. Complete steps 1 and 2 from above.
 2. Add `http://127.0.0.1:5000` to your callback URLs in Twitter dev app settings
-3. Run `python app.py` once you are in your python venv
+3. `make start`
+
+   **OR**
+
+3) `source .venv/bin/activate && python app.py`
 
 # Usage(CLI version)
 

@@ -44,6 +44,9 @@ def generate_auth() -> tweepy.OAuthHandler:
 
 @app.route("/")
 def home():
+    # check to make sure secrets are there
+    if not HOSTED_CONSUMER_KEY or not HOSTED_CONSUMER_SECRET:
+        return "<h1>Oh no! You forgot to add your credentials to secrets.py!</h1>"
     auth = generate_auth()
     token = request.args.get("oauth_token")
     verifier = request.args.get("oauth_verifier")
@@ -71,12 +74,8 @@ def home():
         user = User(username=username)
         db.session.add(user)
         db.session.commit()
-    rank_by = request.args.get("rank_by")
-    if not rank_by:
-        rank_by = "recent"
-    value = request.args.get("value")
-    if not value:
-        value = ""
+    rank_by = request.args.get("rank_by", "recent")
+    value = request.args.get("value", "")
     has_fetched_followers = user.followers
     try:
         dms_all_sent = False
