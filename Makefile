@@ -12,7 +12,8 @@ install:
 	pip install -r requirements.txt; \
 	test -f $(SECRETS_FILE) || echo 'HOSTED_CONSUMER_KEY = ""\nHOSTED_CONSUMER_SECRET = ""\nCONSUMER_KEY = ""\nCONSUMER_SECRET = ""\nSECRET_KEY = ""' > $(SECRETS_FILE)
 
-### venv - start venv
-.PHONY: venv
-venv:
-	. .venv/bin/activate
+### start - start server
+.PHONY: start
+start:
+	. .venv/bin/activate; \
+	python app.py
