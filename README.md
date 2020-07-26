@@ -28,10 +28,10 @@ Solution to: https://github.com/balajis/twitter-export/
    - make sure your Twitter app has "Read, write, and Direct Messages" permission
 
    ```python
-    HOSTED_CONSUMER_KEY = "" # add this if you want to test the flask app locally
-    HOSTED_CONSUMER_SECRET = "" # add this if you want to test the flask app locally
-    CONSUMER_KEY = ""
-    CONSUMER_SECRET = ""
+    HOSTED_CONSUMER_KEY = "" # for the flask app
+    HOSTED_CONSUMER_SECRET = "" # for the flask app
+    CONSUMER_KEY = "" # for the CLI version
+    CONSUMER_SECRET = "" # for the CLI version
     SECRET_KEY = ""
    ```
 
