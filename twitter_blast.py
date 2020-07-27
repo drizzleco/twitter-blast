@@ -238,7 +238,7 @@ def handle_fetch():
         refetch = input(
             "You've already fetched your followers. Are you sure you want to refetch them? This could take a while. [y/n]: "
         )
-        if refetch is "y":
+        if refetch == "y":
             db.drop_all()
             db.create_all()
             fetch_followers(username, api)
