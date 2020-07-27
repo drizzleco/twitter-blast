@@ -55,6 +55,10 @@ Solution to: https://github.com/balajis/twitter-export/
 
 3) `source .venv/bin/activate && python app.py`
 
+   **OR**
+
+3. `docker-compose up --build`
+
 # Usage(CLI version)
 
 ```
