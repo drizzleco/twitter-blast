@@ -11,4 +11,3 @@ def test_prompt_ranking_value(monkeypatch, inp):
         twitter_blast.ranking_choices[inp - 1],
         "",
     )
-

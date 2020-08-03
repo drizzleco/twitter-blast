@@ -1,4 +1,3 @@
-from secrets import CONSUMER_KEY, CONSUMER_SECRET
 import tweepy, time, click, os, pickle, pydoc
 from typing import List, Tuple
 from models import User, Follower, db
@@ -348,6 +347,8 @@ def twitter_blast(action, real):
 
 
 if __name__ == "__main__":
+    from secrets import CONSUMER_KEY, CONSUMER_SECRET
+
     api = tweepy.API(auth())
     username = api.me().screen_name
     print("Logged in as: " + username)
