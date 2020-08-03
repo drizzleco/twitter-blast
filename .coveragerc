@@ -1,0 +1,7 @@
+[report]
+omit = *tests*
+        *.tox*
+
+[run]
+omit = *tests*
+        *.tox*
