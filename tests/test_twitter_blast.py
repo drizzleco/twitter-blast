@@ -1,5 +1,4 @@
 import pytest
-import mock
 from hypothesis import given
 import hypothesis.strategies as st
 import twitter_blast
