@@ -10,7 +10,6 @@ from flask import (
     flash,
 )
 from flask_cors import CORS
-from secrets import HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, SECRET_KEY
 import tweepy
 from flask import Flask
 from models import User, Follower, db
@@ -21,7 +20,6 @@ app = Flask(__name__)
 CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///twitter_blast.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.secret_key = SECRET_KEY
 db.app = app
 db.init_app(app)
 
@@ -142,5 +140,8 @@ def logout():
 
 
 if __name__ == "__main__":
+    from secrets import HOSTED_CONSUMER_KEY, HOSTED_CONSUMER_SECRET, SECRET_KEY
+
+    app.secret_key = SECRET_KEY
     db.create_all()
     app.run(debug=True)

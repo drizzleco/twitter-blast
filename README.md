@@ -4,6 +4,9 @@ Mass DM tool for Twitter to convert followers to another platform
 
 Solution to: https://github.com/balajis/twitter-export/
 
+[![Build status](https://badge.buildkite.com/b37e3412702b06621289784b2088181bff2166799786bfa254.svg)](https://buildkite.com/drizzle/twitter-blast)
+[![codecov](https://codecov.io/gh/drizzleco/twitter-blast/branch/master/graph/badge.svg)](https://codecov.io/gh/drizzleco/twitter-blast)
+
 ### CLI Version
 
 ![twitter blast](imgs/cli.gif)
