@@ -17,7 +17,7 @@ hypothesis==5.23.9
 idna==2.9
 iniconfig==1.0.1
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jwt==1.0.0
 MarkupSafe==1.1.1
 more-itertools==8.4.0
