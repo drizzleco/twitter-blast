@@ -25,7 +25,7 @@ oauthlib==3.1.0
 packaging==20.4
 pathspec==0.8.0
 pluggy==0.13.1
-py==1.9.0
+py==1.10.0
 pycparser==2.20
 PyJWT==1.7.1
 pyparsing==2.4.7
